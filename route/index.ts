@@ -1,12 +1,13 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { favoriteIndex } from '../controller/favoriteController';
+import { favoriteStoreValidate, favoriteDeleteValidate, favoriteStore, favoriteDelete } from '../controller/favoriteController';
 
 // Route Declare
 const route = express.Router();
 
 // Route List
-route.post('/favorite', favoriteIndex);
+route.post('/favorite', favoriteStoreValidate, favoriteStore);
+route.delete('/unfavorite', favoriteDeleteValidate, favoriteDelete);
 
 
 // health check api
