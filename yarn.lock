@@ -10,10 +10,10 @@
     d "1"
     es5-ext "^0.10.47"
 
-"@appitzr-project/db-model@^1.0.13":
-  version "1.0.15"
-  resolved "https://npm.pkg.github.com/download/@appitzr-project/db-model/1.0.15/053319904a0da8732a2cb2f4e410eab74b236af1c06eb33e86e0058181e8f5f9#9a8c447e8e0589f8e823a6c403638e60b0a37fe6"
-  integrity sha512-rUR2j9Z/aHc/+1BSasghOE+DnhCJgjR/2T79/4iT96SywZn3Ynw0BG8YKQUr1qlyW3dtJgxdyqG2C8XNtUFeZw==
+"@appitzr-project/db-model@^1.0.17":
+  version "1.0.17"
+  resolved "https://npm.pkg.github.com/download/@appitzr-project/db-model/1.0.17/d56d69b05207d0c058d5bb8f0af85e6be87f3390d3aa37638a725af30aab9bf7#5607d3a230fd01526313e6c9295d484e6949e74b"
+  integrity sha512-xWWMAE3XEoPwshLzapd9tULSFg4PWqp2U7ybJKtx3OT4HcAg2FerMsNGpI+T58AFry2pD3CYUJF51dRqn3FW6w==
   dependencies:
     aws-sdk "^2.860.0"
 
