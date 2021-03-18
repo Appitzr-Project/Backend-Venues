@@ -60,3 +60,5 @@ Jika butuh token, silahkan ambil ketika login dari **https://dev.appetizr.co/**,
 ## .env.example File
 
 Di dalam file ini ada default **COGNITO_POOL_ID**, tidak perlu dirubah, karena ketika development, tidak perlu cognito di local pc/laptop
+
+## EOF
