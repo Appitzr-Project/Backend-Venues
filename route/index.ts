@@ -1,13 +1,22 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { favoriteStoreValidate, favoriteDeleteValidate, favoriteStore, favoriteDelete, blockVenue } from '../controller/favoriteController';
+import { favoritesSelect, favoritesGet, favoriteStoreValidate, favoriteDeleteValidate, favoriteStore, favoriteDelete, blockVenue } from '../controller/favoriteController';
 import { cultureGet, cultureCategoryValidate } from '../controller/cultureController';
+
+import { venuesGet } from '../controller/venueController';
 
 // Route Declare
 const route = express.Router();
 
 // Route List
-route.post('/favorite', favoriteStoreValidate, favoriteStore);
+route.get('/', venuesGet);
+route.get('/favorites', favoritesGet);
+route.post('/favorites', favoriteStoreValidate, favoriteStore);
+route.get('/favorites/:venueId', favoritesSelect);
+
+
+
+
 route.delete('/favorite', favoriteDeleteValidate, favoriteDelete);
 route.post('/favoriteblock', favoriteStoreValidate, blockVenue);
 route.delete('/favoriteblock', favoriteDeleteValidate, favoriteDelete);
