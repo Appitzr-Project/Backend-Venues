@@ -12,7 +12,8 @@ const ddb = new AWS.DynamoDB.DocumentClient({ endpoint: process.env.DYNAMODB_LOC
  * Venue Profile Store Validation with Express Validator
  */
 export const favoriteStoreValidate : ValidationChain[] = [
-  body('venueId').notEmpty().isString()
+  body('venueId').notEmpty().isString(),
+  body('isBlocked').notEmpty().isBoolean()
 ];
 export const favoriteDeleteValidate : ValidationChain[] = [
   body('id').notEmpty().isString()
@@ -25,6 +26,59 @@ export const favoriteDeleteValidate : ValidationChain[] = [
  * @param res
  * @param next
  */
+
+export const favoritesGet = async (
+  req: RequestAuthenticated,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+      // validate group
+      const user = userDetail(req);
+
+      // exapress validate input
+      const errors = validationResult(req);
+      if(!errors.isEmpty()) {
+          return res.status(400).json({ errors: errors.array() });
+      }
+
+      // dynamodb parameter
+      const paramDB : AWS.DynamoDB.DocumentClient.GetItemInput = {
+        TableName: userProfileModel.TableName,
+        Key: {
+          email: user.email,
+          cognitoId: user.sub
+        },
+        AttributesToGet: ["id"]
+      }
+
+      // query to database
+      const getUser = await ddb.get(paramDB).promise();
+
+      const params = { 
+        TableName: userFavoritesModel.TableName,
+        FilterExpression: "userId = :ui AND isBlocked = :ib",
+        ExpressionAttributeValues: {
+            ":ui": getUser?.Item.id,
+            ":ib": false
+        }
+      };
+
+      const queryDB = await ddb.scan(params).promise();
+
+      // return result
+      return res.status(200).json({
+          code: 200,
+          message: 'success',
+          data: queryDB?.Items
+      });
+
+  } catch (e) {
+    // return default error
+    next(e);
+  }
+};
+
 export const favoriteStore = async (
   req: RequestAuthenticated,
   res: Response,
@@ -95,6 +149,32 @@ export const favoriteStore = async (
     next(e);
   }
 };
+
+export const favoritesSelect = async (
+  req: RequestAuthenticated,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+
+      // return result
+      return res.status(200).json({
+          code: 200,
+          message: 'success',
+          data: []
+      });
+
+  } catch (e) {
+    // return default error
+    next(e);
+  }
+};
+
+
+
+
+
+
 
 export const favoriteDelete = async (
   req: RequestAuthenticated,
