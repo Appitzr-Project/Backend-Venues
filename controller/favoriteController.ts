@@ -161,3 +161,74 @@ export const favoriteDelete = async (
     next(e);
   }
 };
+
+export const blockVenue = async (
+  req: RequestAuthenticated,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // validate group
+    const user = userDetail(req);
+
+    // exapress validate input
+    const errors = validationResult(req);
+    if(!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    // dynamodb parameter
+    const paramDB : AWS.DynamoDB.DocumentClient.GetItemInput = {
+      TableName: userProfileModel.TableName,
+      Key: {
+        email: user.email,
+        cognitoId: user.sub
+      },
+      AttributesToGet: ["id"]
+    }
+
+    // query to database
+    const getUser = await ddb.get(paramDB).promise();
+
+    // get input
+    const favorite : userFavorites = req.body;
+
+    // venue Favorites input with typescript definition
+    const userInput : userFavorites = {
+      id: uuidv4(),
+      userId: getUser?.Item.id,
+      venueId: favorite.venueId,
+      isBlocked: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+
+    // dynamodb parameter
+    const paramsDB : AWS.DynamoDB.DocumentClient.PutItemInput = {
+      TableName: userFavoritesModel.TableName,
+      Item: userInput,
+      ConditionExpression: 'attribute_not_exists(venueId)'
+    }
+
+    // save data to database
+    await ddb.put(paramsDB).promise();
+
+    // return result
+    return res.status(200).json({
+      code: 200,
+      message: 'success',
+      data: paramsDB?.Item
+    });
+
+  } catch (e) {
+    /**
+     * Return error kalau expression data udh ada
+     */
+     if(e?.code == 'ConditionalCheckFailedException') {
+      next(new Error('Data Already Exist.!'));
+    }
+
+    // return default error
+    next(e);
+  }
+};
