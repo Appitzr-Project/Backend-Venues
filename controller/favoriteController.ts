@@ -1,5 +1,5 @@
-import { Response, NextFunction } from "express";
-import { body, validationResult, ValidationChain } from 'express-validator';
+import { Response, NextFunction} from "express";
+import { body, validationResult, ValidationChain, param } from 'express-validator';
 import { userFavoritesModel, userFavorites, userProfileModel } from "@appitzr-project/db-model";
 import { RequestAuthenticated, userDetail } from "@base-pojokan/auth-aws-cognito";
 import * as AWS from 'aws-sdk';
@@ -54,13 +54,14 @@ export const favoritesGet = async (
 
       // query to database
       const getUser = await ddb.get(paramDB).promise();
+      const getQuery = req.param('isBlocked');
 
       const params = { 
         TableName: userFavoritesModel.TableName,
         FilterExpression: "userId = :ui AND isBlocked = :ib",
         ExpressionAttributeValues: {
             ":ui": getUser?.Item.id,
-            ":ib": false
+            ":ib": (getQuery == "true")
         }
       };
 
@@ -115,7 +116,7 @@ export const favoriteStore = async (
       id: uuidv4(),
       userId: getUser?.Item.id,
       venueId: favorite.venueId,
-      isBlocked: false,
+      isBlocked: favorite.isBlocked,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -156,13 +157,25 @@ export const favoritesSelect = async (
   next: NextFunction
 ) => {
   try {
+    const params = {
+      ExpressionAttributeValues: {
+       ":v1": {
+         S: "db6c1af0-b2b1-4cd7-9a57-d11eca784393"
+        }
+      }, 
+      KeyConditionExpression: "venueId = :v1", 
+      ProjectionExpression: "venueId", 
+      TableName: userFavoritesModel.TableName
+    };
 
-      // return result
-      return res.status(200).json({
-          code: 200,
-          message: 'success',
-          data: []
-      });
+    const getFavorite = await ddb.query(params).promise();
+
+    // return result
+    return res.status(200).json({
+        code: 200,
+        message: 'success',
+        data: getFavorite
+    });
 
   } catch (e) {
     // return default error

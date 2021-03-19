@@ -1,27 +1,23 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
 import { favoritesSelect, favoritesGet, favoriteStoreValidate, favoriteDeleteValidate, favoriteStore, favoriteDelete, blockVenue } from '../controller/favoriteController';
-import { cultureGet, cultureCategoryValidate } from '../controller/cultureController';
+import { cultureGet } from '../controller/cultureController';
 
-import { venuesGet } from '../controller/venueController';
+import { venuesGet, venuesGetDetails } from '../controller/venueController';
 
 // Route Declare
 const route = express.Router();
 
 // Route List
-route.get('/', venuesGet);
-route.get('/favorites', favoritesGet);
-route.post('/favorites', favoriteStoreValidate, favoriteStore);
-route.get('/favorites/:venueId', favoritesSelect);
+route.get('/', venuesGet); //fix use scan
+route.get('/culture', cultureGet); //fix
+route.get('/favorites', favoritesGet); //fix use scan
+route.get('/:venueId', venuesGetDetails); //progress
+route.post('/favorites', favoriteStoreValidate, favoriteStore); //fix
 
-
-
-
-route.delete('/favorite', favoriteDeleteValidate, favoriteDelete);
-route.post('/favoriteblock', favoriteStoreValidate, blockVenue);
-route.delete('/favoriteblock', favoriteDeleteValidate, favoriteDelete);
-
-route.post('/culture', cultureCategoryValidate, cultureGet);
+route.get('/favorites/:venueId', favoritesSelect); //progress
+route.put('/favorites/:venueId', favoriteStoreValidate, favoriteStore); //progress
+route.delete('/favorites/:venueId', favoriteStoreValidate, favoriteStore); //progress
 
 // health check api
 route.get('/health-check', (req: Request, res: Response) => {

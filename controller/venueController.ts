@@ -8,36 +8,56 @@ import * as AWS from 'aws-sdk';
 const ddb = new AWS.DynamoDB.DocumentClient({ endpoint: process.env.DYNAMODB_LOCAL, convertEmptyValues: true });
 
 export const venuesGet = async (
-    req: RequestAuthenticated,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-        // validate group
-        userDetail(req);
+  req: RequestAuthenticated,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+      const params = { 
+          TableName: venueProfileModel.TableName,
+          AttributesToGet: venueAttribute
+      };
 
-        // exapress validate input
-        const errors = validationResult(req);
-        if(!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
+      const queryDB = await ddb.scan(params).promise();
 
-        const params = { 
-            TableName: venueProfileModel.TableName,
-            AttributesToGet: venueAttribute
-        };
+      // return result
+      return res.status(200).json({
+          code: 200,
+          message: 'success',
+          data: queryDB?.Items
+      });
 
-        const queryDB = await ddb.scan(params).promise();
+  } catch (e) {
+    // return default error
+    next(e);
+  }
+};
 
-        // return result
-        return res.status(200).json({
-            code: 200,
-            message: 'success',
-            data: queryDB?.Items
-        });
-  
-    } catch (e) {
-      // return default error
-      next(e);
-    }
-  };
+export const venuesGetDetails = async (
+  req: RequestAuthenticated,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const params : AWS.DynamoDB.DocumentClient.GetItemInput = { 
+      TableName: venueProfileModel.TableName,
+      Key: {
+        venueEmail: "test@test.com",
+        cognitoId: "98291e2e-1078-4b10-9c9f-d75e2420d2c1"
+      },
+    };
+
+      const queryDB = await ddb.get(params).promise();
+
+      // return result
+      return res.status(200).json({
+          code: 200,
+          message: 'success',
+          data: queryDB?.Item
+      });
+
+  } catch (e) {
+    // return default error
+    next(e);
+  }
+};
