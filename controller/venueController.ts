@@ -1,7 +1,7 @@
 import { Response, NextFunction } from "express";
 import { body, validationResult, ValidationChain } from 'express-validator';
-import { venueAttribute, cultureCategory, venueProfile, venueProfileModel } from "@appitzr-project/db-model";
-import { RequestAuthenticated, userDetail } from "@base-pojokan/auth-aws-cognito";
+import { venueAttribute, venueProfileModel } from "@appitzr-project/db-model";
+import { RequestAuthenticated } from "@base-pojokan/auth-aws-cognito";
 import * as AWS from 'aws-sdk';
 
 // declare database dynamodb
@@ -39,21 +39,43 @@ export const venuesGetDetails = async (
   next: NextFunction
 ) => {
   try {
-    const params : AWS.DynamoDB.DocumentClient.GetItemInput = { 
+
+    const idVenue = req.param('venueId');
+
+    const params = { 
       TableName: venueProfileModel.TableName,
-      Key: {
-        venueEmail: "test@test.com",
-        cognitoId: "98291e2e-1078-4b10-9c9f-d75e2420d2c1"
+      IndexName: "venueId-index",
+      KeyConditionExpression: "id = :vi", 
+      ExpressionAttributeValues: {                
+        ":vi": idVenue              
       },
+      ProjectionExpression: `
+        id,
+        venueName,
+        venueEmail,
+        bankBSB,
+        bankName,
+        bankAccountNo,
+        phoneNumber,
+        address,
+        postalCode,
+        mapLong,
+        mapLat,
+        cultureCategory,
+        profilePicture,
+        createdAt,
+        updatedAt
+      `,
+      limit: 1
     };
 
-      const queryDB = await ddb.get(params).promise();
+      const queryDB = await ddb.query(params).promise();
 
       // return result
       return res.status(200).json({
           code: 200,
           message: 'success',
-          data: queryDB?.Item
+          data: queryDB?.Items[0]
       });
 
   } catch (e) {
