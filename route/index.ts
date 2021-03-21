@@ -1,6 +1,6 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { favoritesSelect, favoritesGet, favoriteStoreValidate, favoriteDeleteValidate, favoriteStore, favoriteDelete, blockVenue } from '../controller/favoriteController';
+import { favoriteUpdate, getFavoriteByVenueId, favoritesGet, favoriteStoreValidate, favoriteUpdateValidate, favoriteStore, favoriteDelete } from '../controller/favoriteController';
 import { cultureGet } from '../controller/cultureController';
 
 import { venuesGet, venuesGetDetails } from '../controller/venueController';
@@ -9,15 +9,14 @@ import { venuesGet, venuesGetDetails } from '../controller/venueController';
 const route = express.Router();
 
 // Route List
-route.get('/', venuesGet); //fix use scan
-route.get('/culture', cultureGet); //fix
-route.get('/favorites', favoritesGet); //fix use scan
-route.get('/:venueId', venuesGetDetails); //progress
-route.post('/favorites', favoriteStoreValidate, favoriteStore); //fix
-
-route.get('/favorites/:venueId', favoritesSelect); //progress
-route.put('/favorites/:venueId', favoriteStoreValidate, favoriteStore); //progress
-route.delete('/favorites/:venueId', favoriteStoreValidate, favoriteStore); //progress
+route.get('/', venuesGet);
+route.get('/culture', cultureGet);
+route.get('/favorites', favoritesGet);
+route.get('/:venueId', venuesGetDetails);
+route.post('/favorites', favoriteStoreValidate, favoriteStore);
+route.get('/favorites/:venueId', getFavoriteByVenueId);
+route.put('/favorites/:venueId', favoriteUpdateValidate, favoriteUpdate);
+route.delete('/favorites/:venueId', favoriteDelete);
 
 // health check api
 route.get('/health-check', (req: Request, res: Response) => {
