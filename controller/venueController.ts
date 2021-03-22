@@ -43,7 +43,7 @@ export const venuesGetDetails = async (
 
     const params = { 
       TableName: venueProfileModel.TableName,
-      IndexName: "venueId-index",
+      IndexName: "idIndex",
       KeyConditionExpression: "id = :vi", 
       ExpressionAttributeValues: {                
         ":vi": idVenue              
