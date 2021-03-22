@@ -21,6 +21,7 @@ const serverlessConfiguration: Serverless = {
         },
         environment: {
             AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+            NODE_ENV: '${env:NODE_ENV}',
         },
         // Grant Access to DynamoDB
         iamRoleStatements: [
@@ -37,11 +38,11 @@ const serverlessConfiguration: Serverless = {
                     "dynamodb:DeleteItem"
                 ],
                 Resource: [
-                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/VenueProfile',
-                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/Products',
-                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/Orders',
-                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/UserProfile',
-                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/UserFavorites',
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/${env:NODE_ENV}_VenueProfile',
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/${env:NODE_ENV}_Products',
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/${env:NODE_ENV}_Orders',
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/${env:NODE_ENV}_UserProfile',
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/${env:NODE_ENV}_UserFavorites',
                 ],
             }
         ],
@@ -89,7 +90,7 @@ const serverlessConfiguration: Serverless = {
             },
         },
         project: {
-            cognito: '${env:COGNITO_POOL_ID}',
+            cognito: 'arn:aws:cognito-idp:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:userpool/${env:COGNITO_POOL_ID}',
             dev: 'api.dev.appetizr.co',
             prod: 'api.appetizr.co',
         },
