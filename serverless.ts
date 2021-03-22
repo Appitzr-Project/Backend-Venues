@@ -22,6 +22,29 @@ const serverlessConfiguration: Serverless = {
         environment: {
             AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
         },
+        // Grant Access to DynamoDB
+        iamRoleStatements: [
+            {
+                Effect: 'Allow',
+                Action: [
+                    "dynamodb:BatchGetItem",
+                    "dynamodb:GetItem",
+                    "dynamodb:Query",
+                    "dynamodb:Scan",
+                    "dynamodb:BatchWriteItem",
+                    "dynamodb:PutItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:DeleteItem"
+                ],
+                Resource: [
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/VenueProfile',
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/Products',
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/Orders',
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/UserProfile',
+                    'arn:aws:dynamodb:${opt:region, "ap-southeast-2"}:${env:AWS_ACCOUNT_ID}:table/UserFavorites',
+                ],
+            }
+        ],
     },
     functions: {
         app: {
@@ -59,7 +82,11 @@ const serverlessConfiguration: Serverless = {
     custom: {
         webpack: {
             webpackConfig: './webpack.config.js',
-            includeModules: true,
+            includeModules: {
+                forceExclude: [
+                    'aws-sdk'
+                ],
+            },
         },
         project: {
             cognito: '${env:COGNITO_POOL_ID}',
@@ -69,14 +96,22 @@ const serverlessConfiguration: Serverless = {
         customDomain: {
             domainName: '${self:custom.project.${opt:stage, "dev"}}',
             certificateName: '${self:custom.project.${opt:stage, "dev"}}',
-            basePath: 'venueprofile',
+            basePath: 'venues',
             stage: '${opt:stage, "dev"}',
             createRoute53Record: true,
             endpointType: 'regional',
             securityPolicy: 'tls_1_2',
             apiType: 'rest',
             autoDomain: false,
-        }
+        },
+        dotenv: {
+            exclude: [
+                'AWS_ACCESS_KEY_ID',
+                'AWS_SECRET_ACCESS_KEY',
+                'AWS_REGION',
+                'DYNAMODB_LOCAL'
+            ],
+        },
     },
 };
 
