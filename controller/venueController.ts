@@ -1,5 +1,4 @@
 import { Response, NextFunction } from "express";
-import { body, validationResult, ValidationChain } from 'express-validator';
 import { venueAttribute, venueProfileModel } from "@appitzr-project/db-model";
 import { RequestAuthenticated } from "@base-pojokan/auth-aws-cognito";
 import * as AWS from 'aws-sdk';
@@ -40,7 +39,7 @@ export const venuesGetDetails = async (
 ) => {
   try {
 
-    const idVenue = req.param('venueId');
+    const idVenue = req.params.venueId;
 
     const params = { 
       TableName: venueProfileModel.TableName,
