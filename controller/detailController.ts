@@ -25,7 +25,7 @@ export const getVanueById = async (
       TableName: venueProfileModel.TableName,
       KeyConditionExpression: "#id = :id",
       ExpressionAttributeNames: {
-        "#id" : "cognitoId"
+        "#id" : "id"
       },
       ExpressionAttributeValues: {
         ":id" : id
@@ -36,13 +36,13 @@ export const getVanueById = async (
     const queryDB = await ddb.query(paramsDB).promise();
     const items = queryDB.Items;
     if(items[0]) {
-      res.send({
+      return res.send({
         code: 200,
         message: "success",
         data: items[0]
       })
     } else {
-      res.send({
+      return res.send({
         code: 404,
         message: "Not Found",
       })
