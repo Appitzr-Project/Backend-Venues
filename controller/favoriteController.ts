@@ -76,6 +76,12 @@ export const favoritesGet = async (
       });
 
   } catch (e) {
+    /**
+     * Return error kalau data pengguna tidak ada atau tidak ditemukan.
+     */
+    if(e?.message == 'Cannot read property \'id\' of undefined') {
+      next(new Error('Data User Profile Does Not Exist!'));
+    }
     // return default error
     next(e);
   }
@@ -141,10 +147,10 @@ export const favoriteStore = async (
 
   } catch (e) {
     /**
-     * Return error kalau expression data udh ada
+     * Return error kalau data pengguna tidak ada atau tidak ditemukan.
      */
-     if(e?.code == 'ConditionalCheckFailedException') {
-      next(new Error('Data Already Exist.!'));
+     if(e?.message == 'Cannot read property \'id\' of undefined') {
+      next(new Error('Data User Profile Does Not Exist!'));
     }
 
     // return default error
@@ -200,6 +206,12 @@ export const getFavoriteById = async (
     });
 
   } catch (e) {
+    /**
+     * Return error kalau data pengguna tidak ada atau tidak ditemukan.
+     */
+     if(e?.message == 'Cannot read property \'id\' of undefined') {
+      next(new Error('Data User Profile Does Not Exist!'));
+    }
     // return default error
     next(e);
   }
@@ -270,6 +282,12 @@ export const favoriteUpdate = async (
       data: dataUpdate?.Attributes
     });
   } catch (e) {
+    /**
+     * Return error kalau data pengguna tidak ada atau tidak ditemukan.
+     */
+     if(e?.message == 'Cannot read property \'id\' of undefined') {
+      next(new Error('Data User Profile Does Not Exist!'));
+    }
     // return default error
     next(e);
   }
@@ -324,6 +342,12 @@ export const favoriteDelete = async (
     });
 
   } catch (e) {
+    /**
+     * Return error kalau data pengguna tidak ada atau tidak ditemukan.
+     */
+     if(e?.message == 'Cannot read property \'id\' of undefined') {
+      next(new Error('Data User Profile Does Not Exist!'));
+    }
     // return default error
     next(e);
   }
