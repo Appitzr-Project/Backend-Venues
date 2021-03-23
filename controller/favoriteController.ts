@@ -76,6 +76,13 @@ export const favoritesGet = async (
       });
 
   } catch (e) {
+    /*
+    * Return error kalau data di user profile tidak ada atau tidak ditemukan
+    */
+    if(e?.code == 'Cannot read property \'id\ of undefined') {
+      next(new Error('User profile data does not exist or not found.!'));
+    }
+
     // return default error
     next(e);
   }
@@ -140,11 +147,11 @@ export const favoriteStore = async (
     });
 
   } catch (e) {
-    /**
-     * Return error kalau expression data udh ada
-     */
-     if(e?.code == 'ConditionalCheckFailedException') {
-      next(new Error('Data Already Exist.!'));
+    /*
+    * Return error kalau data di user profile tidak ada atau tidak ditemukan
+    */
+    if(e?.code == 'Cannot read property \'id\ of undefined') {
+      next(new Error('User profile data does not exist or not found.!'));
     }
 
     // return default error
@@ -200,6 +207,13 @@ export const getFavoriteById = async (
     });
 
   } catch (e) {
+    /*
+    * Return error kalau data di user profile tidak ada atau tidak ditemukan
+    */
+    if(e?.code == 'Cannot read property \'id\ of undefined') {
+      next(new Error('User profile data does not exist or not found.!'));
+    }
+
     // return default error
     next(e);
   }
@@ -270,6 +284,13 @@ export const favoriteUpdate = async (
       data: dataUpdate?.Attributes
     });
   } catch (e) {
+    /*
+    * Return error kalau data di user profile tidak ada atau tidak ditemukan
+    */
+    if(e?.code == 'Cannot read property \'id\ of undefined') {
+      next(new Error('User profile data does not exist or not found.!'));
+    }
+
     // return default error
     next(e);
   }
@@ -324,6 +345,13 @@ export const favoriteDelete = async (
     });
 
   } catch (e) {
+    /*
+    * Return error kalau data di user profile tidak ada atau tidak ditemukan
+    */
+    if(e?.code == 'Cannot read property \'id\ of undefined') {
+      next(new Error('User profile data does not exist or not found.!'));
+    }
+    
     // return default error
     next(e);
   }
