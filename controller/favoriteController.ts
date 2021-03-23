@@ -79,7 +79,7 @@ export const favoritesGet = async (
     /*
     * Return error kalau data di user profile tidak ada atau tidak ditemukan
     */
-    if(e?.code == 'Cannot read property \'id\ of undefined') {
+    if(e.message = 'Cannot read property \'id\ of undefined') {
       next(new Error('User profile data does not exist or not found.!'));
     }
 
@@ -150,7 +150,7 @@ export const favoriteStore = async (
     /*
     * Return error kalau data di user profile tidak ada atau tidak ditemukan
     */
-    if(e?.code == 'Cannot read property \'id\ of undefined') {
+    if(e.message = 'Cannot read property \'id\ of undefined') {
       next(new Error('User profile data does not exist or not found.!'));
     }
 
@@ -210,7 +210,7 @@ export const getFavoriteById = async (
     /*
     * Return error kalau data di user profile tidak ada atau tidak ditemukan
     */
-    if(e?.code == 'Cannot read property \'id\ of undefined') {
+    if(e.message = 'Cannot read property \'id\ of undefined') {
       next(new Error('User profile data does not exist or not found.!'));
     }
 
@@ -287,7 +287,7 @@ export const favoriteUpdate = async (
     /*
     * Return error kalau data di user profile tidak ada atau tidak ditemukan
     */
-    if(e?.code == 'Cannot read property \'id\ of undefined') {
+    if(e.message = 'Cannot read property \'id\ of undefined') {
       next(new Error('User profile data does not exist or not found.!'));
     }
 
@@ -348,7 +348,7 @@ export const favoriteDelete = async (
     /*
     * Return error kalau data di user profile tidak ada atau tidak ditemukan
     */
-    if(e?.code == 'Cannot read property \'id\ of undefined') {
+    if(e.message = 'Cannot read property \'id\ of undefined') {
       next(new Error('User profile data does not exist or not found.!'));
     }
     
