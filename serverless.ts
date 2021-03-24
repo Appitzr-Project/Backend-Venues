@@ -63,21 +63,22 @@ const serverlessConfiguration: Serverless = {
             events: [
                 {
                     http: {
-                        method: 'ANY',
+                        method: 'GET',
                         path: '/',
                         cors: true,
-                        authorizer: {
-                            type: 'COGNITO_USER_POOLS',
-                            name: 'Cognito-1',
-                            arn: '${self:custom.project.cognito}',
-                            identitySource: 'method.request.header.Authorization',
-                        }
+                    },
+                },
+                {
+                    http: {
+                        method: 'GET',
+                        path: '/culture',
+                        cors: true,
                     },
                 },
                 {
                     http: {
                         method: 'ANY',
-                        path: '/{proxy+}',
+                        path: '/favorites/{proxy+}',
                         cors: true,
                         authorizer: {
                             type: 'COGNITO_USER_POOLS',
@@ -86,7 +87,14 @@ const serverlessConfiguration: Serverless = {
                             identitySource: 'method.request.header.Authorization'
                         }
                     },
-                }
+                },
+                {
+                    http: {
+                        method: 'GET',
+                        path: '/{proxy+}',
+                        cors: true,
+                    },
+                },
             ],
         },
     },
@@ -116,6 +124,7 @@ const serverlessConfiguration: Serverless = {
             autoDomain: false,
         },
         dotenv: {
+            useDotenv: true,
             exclude: [
                 'AWS_ACCESS_KEY_ID',
                 'AWS_SECRET_ACCESS_KEY',
