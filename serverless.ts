@@ -65,21 +65,33 @@ const serverlessConfiguration: Serverless = {
                     http: {
                         method: 'GET',
                         path: '/',
-                        cors: true,
+                        cors: {
+                            origins: '*',
+                            headers: '*',
+                            allowCredentials: true
+                        },
                     },
                 },
                 {
                     http: {
                         method: 'GET',
                         path: '/culture',
-                        cors: true,
+                        cors: {
+                            origins: '*',
+                            headers: '*',
+                            allowCredentials: true
+                        },
                     },
                 },
                 {
                     http: {
                         method: 'ANY',
                         path: '/favorites/{proxy+}',
-                        cors: true,
+                        cors: {
+                            origins: '*',
+                            headers: '*',
+                            allowCredentials: true
+                        },
                         authorizer: {
                             type: 'COGNITO_USER_POOLS',
                             name: 'Cognito-2',
@@ -92,7 +104,11 @@ const serverlessConfiguration: Serverless = {
                     http: {
                         method: 'GET',
                         path: '/{proxy+}',
-                        cors: true,
+                        cors: {
+                            origins: '*',
+                            headers: '*',
+                            allowCredentials: true
+                        },
                     },
                 },
             ],
