@@ -1,5 +1,5 @@
 import { Response, NextFunction } from "express";
-import { venueAttribute, venueAttributePublic, venueProfileModel } from "@appitzr-project/db-model";
+import { venueAttributePublic, venueProfileModel } from "@appitzr-project/db-model";
 import { RequestAuthenticated } from "@base-pojokan/auth-aws-cognito";
 import * as AWS from 'aws-sdk';
 
@@ -12,10 +12,11 @@ export const venuesGet = async (
   next: NextFunction
 ) => {
   try {
-      const valNameVenue = req.query.nameVenue;
+      const valNameVenue = req.query.name;
       const valCultureCategory = req.query.cultureCategory;
 
-      var params = {};
+      let params: any = {};
+      let queryDB: any;
 
       if (valNameVenue && valCultureCategory) { // check when filter name venue and culture category exist
 
@@ -34,7 +35,7 @@ export const venuesGet = async (
           ProjectionExpression: venueAttributePublic,
         };
 
-        var queryDB = await ddb.query(params).promise();
+        queryDB = await ddb.query(params).promise();
 
       } else if (valNameVenue) { // check when filter name venue exist
 
@@ -50,7 +51,7 @@ export const venuesGet = async (
           ProjectionExpression: venueAttributePublic,
         };
 
-        var queryDB = await ddb.scan(params).promise();
+        queryDB = await ddb.scan(params).promise();
 
       } else if (valCultureCategory) { // check when filter culture category exist
 
@@ -64,7 +65,7 @@ export const venuesGet = async (
           ProjectionExpression: venueAttributePublic,
         };
 
-        var queryDB = await ddb.query(params).promise();
+        queryDB = await ddb.query(params).promise();
 
       } else { // else when filter name venue and culture category not exist
 
@@ -73,7 +74,7 @@ export const venuesGet = async (
           AttributesToGet: venueAttributePublic
         };
 
-        var queryDB = await ddb.scan(params).promise();
+        queryDB = await ddb.scan(params).promise();
         
       }
 
