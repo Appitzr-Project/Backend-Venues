@@ -1,5 +1,5 @@
 import { Response, NextFunction } from "express";
-import { venueAttribute, venueProfileModel } from "@appitzr-project/db-model";
+import { venueAttributePublic, venueProfileModel } from "@appitzr-project/db-model";
 import { RequestAuthenticated } from "@base-pojokan/auth-aws-cognito";
 import * as AWS from 'aws-sdk';
 
@@ -12,12 +12,71 @@ export const venuesGet = async (
   next: NextFunction
 ) => {
   try {
-      const params = { 
-          TableName: venueProfileModel.TableName,
-          AttributesToGet: venueAttribute
-      };
+      const valNameVenue = req.query.name;
+      const valCultureCategory = req.query.cultureCategory;
 
-      const queryDB = await ddb.scan(params).promise();
+      let params: any = {};
+      let queryDB: any;
+
+      if (valNameVenue && valCultureCategory) { // check when filter name venue and culture category exist
+
+        params = { 
+          TableName: venueProfileModel.TableName,
+          IndexName: "cultureCategoryIndex",
+          KeyConditionExpression: "cultureCategory = :cultureCategory",
+          FilterExpression: "contains(#venueName, :venueName)",
+          ExpressionAttributeNames: {
+              "#venueName": "venueName"
+          },
+          ExpressionAttributeValues: {
+              ":venueName": valNameVenue,
+              ":cultureCategory": valCultureCategory
+          },
+          ProjectionExpression: venueAttributePublic,
+        };
+
+        queryDB = await ddb.query(params).promise();
+
+      } else if (valNameVenue) { // check when filter name venue exist
+
+        params = { 
+          TableName: venueProfileModel.TableName,
+          FilterExpression: "contains(#venueName, :venueName)",
+          ExpressionAttributeNames: {
+              "#venueName": "venueName",
+          },
+          ExpressionAttributeValues: {
+              ":venueName": valNameVenue,
+          },
+          ProjectionExpression: venueAttributePublic,
+        };
+
+        queryDB = await ddb.scan(params).promise();
+
+      } else if (valCultureCategory) { // check when filter culture category exist
+
+        params = { 
+          TableName: venueProfileModel.TableName,
+          IndexName: "cultureCategoryIndex",
+          KeyConditionExpression: "cultureCategory = :cultureCategory",
+          ExpressionAttributeValues: {
+              ":cultureCategory": valCultureCategory
+          },
+          ProjectionExpression: venueAttributePublic,
+        };
+
+        queryDB = await ddb.query(params).promise();
+
+      } else { // else when filter name venue and culture category not exist
+
+        params = { 
+          TableName: venueProfileModel.TableName,
+          AttributesToGet: venueAttributePublic
+        };
+
+        queryDB = await ddb.scan(params).promise();
+        
+      }
 
       // return result
       return res.status(200).json({
@@ -51,16 +110,13 @@ export const venuesGetDetails = async (
       ProjectionExpression: `
         id,
         venueName,
-        venueEmail,
-        bankBSB,
-        bankName,
-        bankAccountNo,
         phoneNumber,
         address,
         postalCode,
         mapLong,
         mapLat,
         cultureCategory,
+        productCategory,
         profilePicture,
         createdAt,
         updatedAt
