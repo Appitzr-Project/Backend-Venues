@@ -1,6 +1,6 @@
-import { Response, NextFunction} from "express";
+import { Response, NextFunction } from "express";
 import { body, validationResult, ValidationChain } from 'express-validator';
-import { userFavoritesModel, userFavorites, userProfileModel } from "@appitzr-project/db-model";
+import { userFavoritesModel, userFavorites, userProfileModel, venueProfileModel } from "@appitzr-project/db-model";
 import { RequestAuthenticated, userDetail } from "@base-pojokan/auth-aws-cognito";
 import * as AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
@@ -11,12 +11,12 @@ const ddb = new AWS.DynamoDB.DocumentClient({ endpoint: process.env.DYNAMODB_LOC
 /**
  * Venue Profile Store Validation with Express Validator
  */
-export const favoriteStoreValidate : ValidationChain[] = [
+export const favoriteStoreValidate: ValidationChain[] = [
   body('venueId').notEmpty().isString(),
   body('isBlocked').notEmpty().isBoolean()
 ];
 
-export const favoriteUpdateValidate : ValidationChain[] = [
+export const favoriteUpdateValidate: ValidationChain[] = [
   body('isBlocked').notEmpty().isBoolean()
 ];
 
@@ -34,52 +34,52 @@ export const favoritesGet = async (
   next: NextFunction
 ) => {
   try {
-      // validate group
-      const user = userDetail(req);
+    // validate group
+    const user = userDetail(req);
 
-      // exapress validate input
-      const errors = validationResult(req);
-      if(!errors.isEmpty()) {
-          return res.status(400).json({ errors: errors.array() });
+    // exapress validate input
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    // dynamodb parameter
+    const paramDB: AWS.DynamoDB.DocumentClient.GetItemInput = {
+      TableName: userProfileModel.TableName,
+      Key: {
+        email: user.email,
+        cognitoId: user.sub
+      },
+      AttributesToGet: ["id"]
+    }
+
+    // query to database
+    const getUser = await ddb.get(paramDB).promise();
+    const getQuery = req.params.isBlocked;
+
+    const params = {
+      TableName: userFavoritesModel.TableName,
+      FilterExpression: "userId = :ui AND isBlocked = :ib",
+      ExpressionAttributeValues: {
+        ":ui": getUser?.Item.id,
+        ":ib": (getQuery == "true")
       }
+    };
 
-      // dynamodb parameter
-      const paramDB : AWS.DynamoDB.DocumentClient.GetItemInput = {
-        TableName: userProfileModel.TableName,
-        Key: {
-          email: user.email,
-          cognitoId: user.sub
-        },
-        AttributesToGet: ["id"]
-      }
+    const queryDB = await ddb.scan(params).promise();
 
-      // query to database
-      const getUser = await ddb.get(paramDB).promise();
-      const getQuery = req.params.isBlocked;
-
-      const params = { 
-        TableName: userFavoritesModel.TableName,
-        FilterExpression: "userId = :ui AND isBlocked = :ib",
-        ExpressionAttributeValues: {
-            ":ui": getUser?.Item.id,
-            ":ib": (getQuery == "true")
-        }
-      };
-
-      const queryDB = await ddb.scan(params).promise();
-
-      // return result
-      return res.status(200).json({
-          code: 200,
-          message: 'success',
-          data: queryDB?.Items
-      });
+    // return result
+    return res.status(200).json({
+      code: 200,
+      message: 'success',
+      data: queryDB?.Items
+    });
 
   } catch (e) {
     /*
     * Return error kalau data di user profile tidak ada atau tidak ditemukan
     */
-    if(e.message = 'Cannot read property \'id\ of undefined') {
+    if (e.message = 'Cannot read property \'id\ of undefined') {
       next(new Error('User profile data does not exist or not found.!'));
     }
 
@@ -99,12 +99,12 @@ export const favoriteStore = async (
 
     // exapress validate input
     const errors = validationResult(req);
-    if(!errors.isEmpty()) {
+    if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
     // dynamodb parameter
-    const paramDB : AWS.DynamoDB.DocumentClient.GetItemInput = {
+    const paramDB: AWS.DynamoDB.DocumentClient.GetItemInput = {
       TableName: userProfileModel.TableName,
       Key: {
         email: user.email,
@@ -117,10 +117,10 @@ export const favoriteStore = async (
     const getUser = await ddb.get(paramDB).promise();
 
     // get input
-    const favorite : userFavorites = req.body;
+    const favorite: userFavorites = req.body;
 
     // venue Favorites input with typescript definition
-    const userInput : userFavorites = {
+    const userInput: userFavorites = {
       id: uuidv4(),
       userId: getUser?.Item.id,
       venueId: favorite.venueId,
@@ -130,7 +130,7 @@ export const favoriteStore = async (
     }
 
     // dynamodb parameter
-    const paramsDB : AWS.DynamoDB.DocumentClient.PutItemInput = {
+    const paramsDB: AWS.DynamoDB.DocumentClient.PutItemInput = {
       TableName: userFavoritesModel.TableName,
       Item: userInput,
       ConditionExpression: 'attribute_not_exists(venueId)'
@@ -150,7 +150,7 @@ export const favoriteStore = async (
     /*
     * Return error kalau data di user profile tidak ada atau tidak ditemukan
     */
-    if(e.message = 'Cannot read property \'id\ of undefined') {
+    if (e.message = 'Cannot read property \'id\ of undefined') {
       next(new Error('User profile data does not exist or not found.!'));
     }
 
@@ -168,14 +168,21 @@ export const getFavoriteById = async (
     // validate group
     const user = userDetail(req);
 
+    // get param
+    const venueIdFavorite = req.params.id;
+
+    // favorites
+    let venueFavorites: boolean = false;
+    let venueBlocked: boolean = false;
+
     // exapress validate input
     const errors = validationResult(req);
-    if(!errors.isEmpty()) {
+    if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
     // dynamodb parameter
-    const paramDB : AWS.DynamoDB.DocumentClient.GetItemInput = {
+    const paramDB: AWS.DynamoDB.DocumentClient.GetItemInput = {
       TableName: userProfileModel.TableName,
       Key: {
         email: user.email,
@@ -186,31 +193,65 @@ export const getFavoriteById = async (
 
     // query to database
     const getUser = await ddb.get(paramDB).promise();
-    
-    const idFavorite = req.params.id;
 
-    const params : AWS.DynamoDB.DocumentClient.GetItemInput = {
+    // get venue favorites
+    const paramsVenuefavorites: AWS.DynamoDB.DocumentClient.QueryInput = {
       TableName: userFavoritesModel.TableName,
-      Key: {
-        id: idFavorite,
-        userId: getUser?.Item.id
-      }
+      IndexName: 'venueIdIndex',
+      KeyConditionExpression: 'venueId = :vi AND userId = :ui',
+      ExpressionAttributeValues: {
+        ':vi': venueIdFavorite,
+        ':ui': getUser?.Item.id
+      },
+      Limit: 1
     }
+    const getFavorite = await ddb.query(paramsVenuefavorites).promise();
 
-    const getFavorite = await ddb.get(params).promise();
+    // update venue favorites
+    venueFavorites = getFavorite?.Items[0].isBlocked ? false : true;
+    venueBlocked = getFavorite?.Items[0].isBlocked;
+
+    // get venue detail
+    const paramsVenueDetail: AWS.DynamoDB.DocumentClient.QueryInput = {
+      TableName: venueProfileModel.TableName,
+      IndexName: 'idIndex',
+      KeyConditionExpression: 'id = :id',
+      ExpressionAttributeValues: {
+        ':id': venueIdFavorite,
+      },
+      ProjectionExpression: `
+        id,
+        venueName,
+        phoneNumber,
+        address,
+        postalCode,
+        mapLong,
+        mapLat,
+        cultureCategory,
+        productCategory,
+        profilePicture,
+        createdAt,
+        updatedAt
+      `,
+      Limit: 1
+    }
+    const getVenueDetail = await ddb.query(paramsVenueDetail).promise();
+
+    // set json result
+    const result = { ...getVenueDetail?.Items[0], venueFavorites, venueBlocked }
 
     // return result
     return res.status(200).json({
-        code: 200,
-        message: 'success',
-        data: getFavorite?.Item
+      code: 200,
+      message: 'success',
+      data: result
     });
 
   } catch (e) {
     /*
     * Return error kalau data di user profile tidak ada atau tidak ditemukan
     */
-    if(e.message = 'Cannot read property \'id\ of undefined') {
+    if (e.message = 'Cannot read property \'id\ of undefined') {
       next(new Error('User profile data does not exist or not found.!'));
     }
 
@@ -229,14 +270,17 @@ export const favoriteUpdate = async (
     // validate group
     const user = userDetail(req);
 
+    // get param
+    const venueIdFavorite = req.params.id;
+
     // exapress validate input
     const errors = validationResult(req);
-    if(!errors.isEmpty()) {
+    if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
     // dynamodb parameter
-    const paramDB : AWS.DynamoDB.DocumentClient.GetItemInput = {
+    const paramDB: AWS.DynamoDB.DocumentClient.GetItemInput = {
       TableName: userProfileModel.TableName,
       Key: {
         email: user.email,
@@ -248,17 +292,27 @@ export const favoriteUpdate = async (
     // query to database
     const getUser = await ddb.get(paramDB).promise();
 
-    // get input
-    const idFavorite = req.params.id;
-
-    const getBlockedValue : { isBlocked: boolean } = req.body;
+    const getBlockedValue: { isBlocked: boolean } = req.body;
     const updateAt = new Date().toISOString();
 
+    // get favorites based on venueId
+    const paramsVenuefavorites: AWS.DynamoDB.DocumentClient.QueryInput = {
+      TableName: userFavoritesModel.TableName,
+      IndexName: 'venueIdIndex',
+      KeyConditionExpression: 'venueId = :vi AND userId = :ui',
+      ExpressionAttributeValues: {
+        ':vi': venueIdFavorite,
+        ':ui': getUser?.Item.id
+      },
+      Limit: 1
+    }
+    const getFavorite = await ddb.query(paramsVenuefavorites).promise();
+
     // dynamodb parameter
-    const paramsDB : AWS.DynamoDB.DocumentClient.UpdateItemInput = {
+    const paramsDB: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
       TableName: userFavoritesModel.TableName,
       Key: {
-        id: idFavorite,
+        id: getFavorite?.Items[0]?.id,
         userId: getUser?.Item.id
       },
       UpdateExpression: `
@@ -273,7 +327,7 @@ export const favoriteUpdate = async (
       ReturnValues: 'ALL_NEW',
       ConditionExpression: 'attribute_exists(userId)'
     }
-    
+
     // save data to database
     const dataUpdate = await ddb.update(paramsDB).promise();
 
@@ -287,7 +341,7 @@ export const favoriteUpdate = async (
     /*
     * Return error kalau data di user profile tidak ada atau tidak ditemukan
     */
-    if(e.message = 'Cannot read property \'id\ of undefined') {
+    if (e.message = 'Cannot read property \'id\ of undefined') {
       next(new Error('User profile data does not exist or not found.!'));
     }
 
@@ -305,14 +359,17 @@ export const favoriteDelete = async (
     // validate group
     const user = userDetail(req);
 
+    // get param
+    const venueIdFavorite = req.params.id;
+
     // exapress validate input
     const errors = validationResult(req);
-    if(!errors.isEmpty()) {
+    if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
     // dynamodb parameter
-    const paramDB : AWS.DynamoDB.DocumentClient.GetItemInput = {
+    const paramDB: AWS.DynamoDB.DocumentClient.GetItemInput = {
       TableName: userProfileModel.TableName,
       Key: {
         email: user.email,
@@ -324,13 +381,23 @@ export const favoriteDelete = async (
     // query to database
     const getUser = await ddb.get(paramDB).promise();
 
-    // get input
-    const idFavorite = req.params.id;
+    // get favorites based on venueId
+    const paramsVenuefavorites: AWS.DynamoDB.DocumentClient.QueryInput = {
+      TableName: userFavoritesModel.TableName,
+      IndexName: 'venueIdIndex',
+      KeyConditionExpression: 'venueId = :vi AND userId = :ui',
+      ExpressionAttributeValues: {
+        ':vi': venueIdFavorite,
+        ':ui': getUser?.Item.id
+      },
+      Limit: 1
+    }
+    const getFavorite = await ddb.query(paramsVenuefavorites).promise();
 
-        const paramDel = {
+    const paramDel = {
       TableName: userFavoritesModel.TableName,
       Key: {
-        id: idFavorite,
+        id: getFavorite?.Items[0]?.id,
         userId: getUser?.Item.id
       }
     }
@@ -348,10 +415,10 @@ export const favoriteDelete = async (
     /*
     * Return error kalau data di user profile tidak ada atau tidak ditemukan
     */
-    if(e.message = 'Cannot read property \'id\ of undefined') {
+    if (e.message = 'Cannot read property \'id\ of undefined') {
       next(new Error('User profile data does not exist or not found.!'));
     }
-    
+
     // return default error
     next(e);
   }
