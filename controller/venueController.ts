@@ -107,20 +107,7 @@ export const venuesGetDetails = async (
       ExpressionAttributeValues: {                
         ":vi": idVenue              
       },
-      ProjectionExpression: `
-        id,
-        venueName,
-        phoneNumber,
-        address,
-        postalCode,
-        mapLong,
-        mapLat,
-        cultureCategory,
-        productCategory,
-        profilePicture,
-        createdAt,
-        updatedAt
-      `,
+      ProjectionExpression: venueAttributePublic,
       limit: 1
     };
 
